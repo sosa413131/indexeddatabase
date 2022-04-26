@@ -84,18 +84,7 @@ const Name: React.FC<ContainerProps> = () => {
             objectStore.transaction.oncomplete= (event:any)=>{
                 var customerObjectStore = db.transaction(dbName, "readwrite").objectStore(dbName);
 
-
-                // prompt user for name and email
-                // create instance of User class
-                // var test = new User("name", "email");
-                // use the userObject to add data to objectstore
-                // customerObjectStore.add(test);
-                // console.log("added user object to datastore")
-                // customerData.forEach(function(customer) {
-                //     customerObjectStore.add(customer);
-                //     // console.log("adding to db")
-                // });
-
+                // params should be empty strings for user object in new db
                 var test = new User("name", "email");
 
                 customerObjectStore.add(test);
@@ -119,16 +108,25 @@ const Name: React.FC<ContainerProps> = () => {
           };
 
         request.onsuccess = (event:any) => {
-        // Do something with the request.result!
-        var db = event.target.result;
-        var transaction = db.transaction([dbName]);
-        var objectStore = transaction.objectStore(dbName);
-        request = objectStore.get("email");
+            // Do something with the request.result!
+            var db = event.target.result;
+            var transaction = db.transaction([dbName]);
+            var objectStore = transaction.objectStore(dbName);
 
-        request.onsuccess=(event:any)=>{
-            console.log("Bill: ", request.result);
+            objectStore.openCursor().onsuccess = (event:any) => {
+                var cursor = event.target.result;
+                if (cursor) {
+                console.log("Email:  " + cursor.key + "\n Name: " + cursor.value.name);
+
+                //   update DOM with username and email if not empty strings else load empty
+                cursor.continue();
+                }
+                else {
+                console.log("No more entries!");
+                }
+
+            }
         }
-    }
 
 
     },[]);
