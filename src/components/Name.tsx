@@ -3,12 +3,33 @@ import { create } from 'domain';
 import { useState, useEffect } from 'react';
 import './Name.css';
 
+class User  {
+    name: string;
+    email: string;
+
+    public constructor();
+    public constructor(name: string, email: string);
+    public constructor(...myarray: any[]){
+        if (myarray.length === 2){
+            // 2 parameter constructor
+            this.name=myarray[0];
+            this.email=myarray[1];
+        } else{
+            // parameterless constructor
+            this.name="";
+            this.email="";
+        }
+    }
+}
+
 interface ContainerProps { }
 
 const Name: React.FC<ContainerProps> = () => {
-    const [username, setUsername] = useState(null);
-    
+
+    const [userdata, setUsername] = useState(new User());
+
     useEffect(()=>{
+        // console.log('use effect');
 
         if (!window.indexedDB) {
             console.log("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
@@ -19,14 +40,16 @@ const Name: React.FC<ContainerProps> = () => {
         const dbName = "the_name";
 
         // delete db
-        // window.indexedDB.deleteDatabase(dbName)
+        window.indexedDB.deleteDatabase(dbName);
 
+        // var customerData:Array<any>= [
+        //     {ssn: '444-44-4444',  name: "Bill", age: 35, email: "bill@company.com" },
+        //     { ssn: '555-55-5555',  name: "Donna", age: 32, email: "donna@home.org" }
+        // ];
 
-        // darray to be written to db
-        var customerData:Array<any>= [
-            {ssn: '444-44-4444',  name: "Bill", age: 35, email: "bill@company.com" },
-            { ssn: '555-55-5555',  name: "Donna", age: 32, email: "donna@home.org" }
-        ];
+    //    var  customerData =
+
+ 
 
 
         // handle to database -- will trigger upgrade
@@ -52,17 +75,30 @@ const Name: React.FC<ContainerProps> = () => {
         function createDatabase(event: any){
             console.log("creating db");
             var db = event.target.result;
-            var objectStore = db.createObjectStore(dbName, { keyPath: "ssn" });
+            var objectStore = db.createObjectStore(dbName, { keyPath: "email" });
               // define what data items the objectStore will contain
-            objectStore.createIndex("name", "name", { unique: false });
-            objectStore.createIndex("email", "email", { unique: true });
-            objectStore.createIndex("age", "age", { unique: false });
+              objectStore.createIndex("name", "name", { unique: false });
+              objectStore.createIndex("email", "email", { unique: true });
+            //   objectStore.createIndex("age", "age", { unique: false });
 
             objectStore.transaction.oncomplete= (event:any)=>{
                 var customerObjectStore = db.transaction(dbName, "readwrite").objectStore(dbName);
-                customerData.forEach(function(customer) {
-                    customerObjectStore.add(customer);
-                });
+
+
+                // prompt user for name and email
+                // create instance of User class
+                // var test = new User("name", "email");
+                // use the userObject to add data to objectstore
+                // customerObjectStore.add(test);
+                // console.log("added user object to datastore")
+                // customerData.forEach(function(customer) {
+                //     customerObjectStore.add(customer);
+                //     // console.log("adding to db")
+                // });
+
+                var test = new User("name", "email");
+
+                customerObjectStore.add(test);
             };
         };
 
@@ -87,7 +123,7 @@ const Name: React.FC<ContainerProps> = () => {
         var db = event.target.result;
         var transaction = db.transaction([dbName]);
         var objectStore = transaction.objectStore(dbName);
-        request = objectStore.get("444-44-4444");
+        request = objectStore.get("email");
 
         request.onsuccess=(event:any)=>{
             console.log("Bill: ", request.result);
