@@ -23,10 +23,10 @@ class User  {
     }
 }
 
-export type FormValues = {
-    name: string;
-    email: number;
-  };
+// export type FormValues = {
+//     name: string;
+//     email: number;
+//   };
 interface ContainerProps { }
 
 const Name: React.FC<ContainerProps> = () => {
@@ -39,14 +39,16 @@ const Name: React.FC<ContainerProps> = () => {
 
     useEffect(()=>{
 
+        // console.log("effect!");
+        // console.log(dbName);
         if (!window.indexedDB) {
             console.log("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
             // break out of effect 
             return;
         }
 
-        // delete db
-        window.indexedDB.deleteDatabase(dbName);
+        // // delete db for testing
+        // window.indexedDB.deleteDatabase(dbName);
 
         // handle to database -- will trigger upgrade
         var request = window.indexedDB.open(dbName, 0+1);
@@ -57,6 +59,7 @@ const Name: React.FC<ContainerProps> = () => {
         };
 
         request.onupgradeneeded = (event:any) => {
+            console.log("upgrade")
             var db = event.target.result;
             if(!objectStoreAlreadyExists(db.objectStoreNames, dbName)){
                 createDatabase(event);
@@ -79,9 +82,9 @@ const Name: React.FC<ContainerProps> = () => {
                 var customerObjectStore = db.transaction(dbName, "readwrite").objectStore(dbName);
 
                 // params should be empty strings for user object in new db
-                var test = new User("name", "email");
+                var emptyUserObject = new User("", "");
 
-                customerObjectStore.add(test);
+                customerObjectStore.add(emptyUserObject);
             };
         };
 
@@ -134,43 +137,65 @@ const Name: React.FC<ContainerProps> = () => {
 
      var registerUser = (event:any)=>{
          event.preventDefault();
+
         //  exclamations to let typescript know values cannot be null
          var newName = document.querySelector(".username")?.getAttribute("value")!;
          var newEmail = document.querySelector(".email")?.getAttribute("value")!;
          console.log("submitted data: ", {name:newName, email:newEmail});
 
-         setUsername(new User(newName,newEmail ));
+        var request = window.indexedDB.open(dbName, 1);
 
-        // var request = window.indexedDB.open(dbName, 1);
+        request.onsuccess = (event:any) => {
 
-        // request.onsuccess = (event:any) => {
-        //      // Do something with the request.result!
-        //      console.log("success!")
-        //      var db = event.target.result;
-        //      var transaction = db.transaction([dbName]);
-        //      var objectStore = transaction.objectStore(dbName);
+            console.log(" registering user")
+             var db = event.target.result;
+             var transaction = db.transaction([dbName], "readwrite");
+             var objectStore = transaction.objectStore(dbName);
 
-        //      objectStore.openCursor().onsuccess = (event:any) => {
-        //         var cursor = event.target.result;
-        //         if (cursor) {
-        //             var email = cursor.key;
-        //             var name = cursor.value.name;
-        //         console.log("Email:  " + cursor.key + "\nName: " + cursor.value.name);
+             objectStore.openCursor().onsuccess = (event:any) => {
+                var cursor = event.target.result;
+                if (cursor) {
+                    var email = cursor.key;
+                    var name = cursor.value.name;
 
-        //         //   update DOM with username and email if not empty strings
-        //         if(name===""){
-        //             setUsername(new User(newName, newEmail));
+                    //   update Indexdb with username and email from form
+                    if(name==="" && email===""){
+                        var userObjectToReplaceObjectStore = new User(newName, newEmail);
+                        console.log("Name value is an empty string. Updating with a new value: ",userObjectToReplaceObjectStore );
+                        
+                        // remove the data object with email as empty string
 
-        //         }  //else form with input fields will capture user info
+                        console.log(objectStore)
+                        var request = db.transaction([dbName], "readwrite")
+                        .objectStore(dbName)
+                        .delete("");
+                        
+                        request.onsuccess = function(event:any) {
+                            console.log("deleted");
 
-        //         cursor.continue();
-        //         }
-        //         else {
-        //         console.log("No more entries!");
-        //         }
-        //     }
+                            var request = db.transaction([dbName], "readwrite")
+                            .objectStore(dbName)
+                            .add(userObjectToReplaceObjectStore);
 
-        // }
+                            // objectStore.add(userObjectToReplaceObjectStore);
+
+                                
+                            request.onsuccess = function(event:any) {
+                                console.log("added new data object successfully");
+                                setUsername(userObjectToReplaceObjectStore);
+                            };
+                        }
+            
+                    }  //else form with input fields will capture user info
+
+                    cursor.continue();
+                    }
+                    else {
+                    console.log("No more entries!");
+                    }
+            }
+
+        }
     };
 
     if (username.name){
@@ -188,12 +213,6 @@ const Name: React.FC<ContainerProps> = () => {
                     <IonItem>
                         <IonLabel position="floating">Username</IonLabel>
                         <IonInput value={nameField}  onIonChange={e => setNameField(e.detail.value!)} className='username'/>
-                        {/* <Controller
-                            as={<IonInput/>}
-                            name="email"
-                            control={control}
-                            onChangeName="onIonChange"
-                            /> */}
                     </IonItem>
                     <IonItem>
                         <IonLabel position="floating">Email</IonLabel>
