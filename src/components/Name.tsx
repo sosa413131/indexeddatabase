@@ -115,11 +115,12 @@ const Name: React.FC<ContainerProps> = () => {
                 if (cursor) {
                     var email = cursor.key;
                     var name = cursor.value.name;
-                console.log("Email:  " + cursor.key + "\nName: " + cursor.value.name);
+                console.log("Email: " + cursor.key + "\nName: " + cursor.value.name);
 
                 //   update DOM with username and email if not empty strings
                 if(name){
-                    setUsername(name);
+                    console.log("name exists update state variable!")
+                    setUsername(new User(name, email));
                 }  //else form with input fields will capture user info
 
                 cursor.continue();
