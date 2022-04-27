@@ -1,7 +1,5 @@
 import { IonButton, IonContent, IonPage, useIonModal, IonModal, IonInput, IonItem, IonLabel, IonCheckbox} from '@ionic/react';
-import { create } from 'domain';
 import { useState, useEffect, useCallback } from 'react';
-// import { Controller, useForm, UseControllerProps } from 'react-hook-form';
 import './Name.css';
 
 class User  {
@@ -23,10 +21,6 @@ class User  {
     }
 }
 
-// export type FormValues = {
-//     name: string;
-//     email: number;
-//   };
 interface ContainerProps { }
 
 const Name: React.FC<ContainerProps> = () => {
@@ -190,10 +184,9 @@ const Name: React.FC<ContainerProps> = () => {
                     }  //else form with input fields will capture user info
 
                     cursor.continue();
-                    }
-                    else {
+                } else {
                     console.log("No more entries!");
-                    }
+                }
             }
 
         }
@@ -225,7 +218,7 @@ const Name: React.FC<ContainerProps> = () => {
                 </form>
             </div>
         );
-    }
+    };
 
 };
 
